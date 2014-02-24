@@ -5,29 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"encoding/json"
-
 	"github.com/elazarl/goproxy"
+	"github.com/roelrymenants/fileproxy"
 )
 
-type Config struct {
-	Rewrites map[string]string
-}
-
-func LoadConfig(filepath string) Config {
-	var config Config
-	b, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		log.Panic("Error reading config file", err)
-	}
-	err = json.Unmarshal(b, &config)
-	log.Printf("%v", config)
-
-	return config
-}
-
 func main() {
-	config := LoadConfig("rewrites.json")
+	config := *fileproxy.LoadConfig(fileproxy.DefaultConfigFile)
 
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = true
@@ -54,6 +37,14 @@ func main() {
 			return req, nil
 		}
 	})
+
+	configChan := fileproxy.StartWatching(fileproxy.DefaultConfigFile)
+
+	go func() {
+		for {
+			config = <-configChan
+		}
+	}()
 
 	log.Fatal(http.ListenAndServe(":8080", proxy))
 }
