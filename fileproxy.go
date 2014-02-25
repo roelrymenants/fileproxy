@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/roelrymenants/fileproxy"
-	"github.com/roelrymenants/proxytool/commands"
+	"github.com/roelrymenants/fileproxy/commands"
+	"github.com/roelrymenants/fileproxy/proxyconfig"
 )
 
 func main() {
@@ -27,12 +27,12 @@ func main() {
 		flag.Usage()
 		return
 	}
-	
+
 	var err error
 
 	switch os.Args[1] {
 	case "run":
-		cmd, err = commands.(os.Args[2:])
+		cmd, err = commands.ParseRunCommand(os.Args[2:])
 	case "add":
 		cmd, err = commands.ParseAddCommand(os.Args[2:])
 	case "remove":
@@ -44,29 +44,29 @@ func main() {
 	cmd = commands.CommandChain([]commands.Command{removeCmd, addCmd})*/
 	case "init":
 		//Special case, no actual command
-		config := fileproxy.NewConfig()
-		config.SaveToFile(fileproxy.DefaultConfigFile)
+		config := proxyconfig.NewConfig()
+		config.SaveToFile(proxyconfig.DefaultConfigFile)
 
 		return
 	}
-	
+
 	if err != nil {
 		log.Printf("Error parsing command: %s", err)
 		flag.Usage()
 		return
 	}
 
-	config, err := fileproxy.LoadConfig(fileproxy.DefaultConfigFile)
+	config, err := proxyconfig.LoadConfig(proxyconfig.DefaultConfigFile)
 
 	if err != nil {
-		log.Fatalf("Could not load config file '%s", fileproxy.DefaultConfigFile)
+		log.Fatalf("Could not load config file '%s", proxyconfig.DefaultConfigFile)
 	}
 
 	err = cmd.Execute(config)
 
 	if err == nil {
 		//All went well
-		config.SaveToFile(fileproxy.DefaultConfigFile)
+		config.SaveToFile(proxyconfig.DefaultConfigFile)
 		log.Printf("%+v", config)
 	} else {
 		log.Printf("%s", err)

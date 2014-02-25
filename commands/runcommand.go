@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/elazarl/goproxy"
-	"github.com/roelrymenants/fileproxy"
+	"github.com/roelrymenants/fileproxy/proxyconfig"
 )
 
 type RunCommand struct {
@@ -16,7 +16,7 @@ func ParseRunCommand(_ []string) (*RunCommand, error) {
 	return &RunCommand{}, nil
 }
 
-func (runCommand *RunCommand) Execute(config *fileproxy.Config) error {
+func (runCommand *RunCommand) Execute(config *proxyconfig.Config) error {
 	proxy := goproxy.NewProxyHttpServer()
 
 	proxy.Verbose = config.Verbose
@@ -44,7 +44,7 @@ func (runCommand *RunCommand) Execute(config *fileproxy.Config) error {
 		}
 	})
 
-	configChan := fileproxy.StartWatching(fileproxy.DefaultConfigFile)
+	configChan := proxyconfig.StartWatching(proxyconfig.DefaultConfigFile)
 
 	go func() {
 		for {

@@ -3,15 +3,19 @@ package main
 import (
 	"testing"
 
-	"github.com/roelrymenants/fileproxy"
-	"github.com/roelrymenants/proxytool/commands"
+	"github.com/roelrymenants/fileproxy/commands"
+	"github.com/roelrymenants/fileproxy/proxyconfig"
 )
 
 var source, destination, firstDestination = "http://www.google.com/some/source", "/some/destination", "/first/destination"
 var completeAddExample = []string{"proxytool", "add", "-force", source, destination}
 
 func TestAddCommandFlagParsing(t *testing.T) {
-	addCommand := commands.ParseAddCommand(completeAddExample[2:])
+	addCommand, err := commands.ParseAddCommand(completeAddExample[2:])
+
+	if err != nil {
+		t.Error("Error parsing command")
+	}
 
 	if !addCommand.IsForce {
 		t.Error("Force option not parsed")
@@ -27,10 +31,15 @@ func TestAddCommandFlagParsing(t *testing.T) {
 }
 
 func TestAddCommandBasic(t *testing.T) {
-	addCommand := commands.ParseAddCommand(completeAddExample[2:])
+	addCommand, err := commands.ParseAddCommand(completeAddExample[2:])
+
+	if err != nil {
+		t.Error("Error parsing command")
+	}
+
 	addCommand.IsForce = false
 
-	config := fileproxy.NewConfig()
+	config := proxyconfig.NewConfig()
 
 	addCommand.Execute(config)
 
@@ -42,9 +51,13 @@ func TestAddCommandBasic(t *testing.T) {
 }
 
 func TestAddCommandForceOverwrite(t *testing.T) {
-	addCommand := commands.ParseAddCommand(completeAddExample[2:])
+	addCommand, err := commands.ParseAddCommand(completeAddExample[2:])
 
-	config := fileproxy.NewConfig()
+	if err != nil {
+		t.Error("Error parsing command")
+	}
+
+	config := proxyconfig.NewConfig()
 	config.Rewrites[source] = firstDestination
 
 	addCommand.Execute(config)
@@ -57,13 +70,18 @@ func TestAddCommandForceOverwrite(t *testing.T) {
 }
 
 func TestAddCommandNoForceNoOverwrite(t *testing.T) {
-	addCommand := commands.ParseAddCommand(completeAddExample[2:])
+	addCommand, err := commands.ParseAddCommand(completeAddExample[2:])
+
+	if err != nil {
+		t.Error("Error parsing command")
+	}
+
 	addCommand.IsForce = false
 
-	config := fileproxy.NewConfig()
+	config := proxyconfig.NewConfig()
 	config.Rewrites[source] = firstDestination
 
-	err := addCommand.Execute(config)
+	err = addCommand.Execute(config)
 
 	put, ok := config.Rewrites[source]
 

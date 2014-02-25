@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/roelrymenants/fileproxy"
+	"github.com/roelrymenants/fileproxy/proxyconfig"
 )
 
 type AddCommand struct {
@@ -78,7 +78,7 @@ func downloadAndWriteToFile(url *url.URL, filepath string) error {
 	return err
 }
 
-func (addCommand *AddCommand) Execute(config *fileproxy.Config) error {
+func (addCommand *AddCommand) Execute(config *proxyconfig.Config) error {
 	currentValue, exists := config.Rewrites[addCommand.Source.String()]
 
 	if exists && !addCommand.IsForce {

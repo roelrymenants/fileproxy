@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/roelrymenants/fileproxy"
+	"github.com/roelrymenants/fileproxy/proxyconfig"
 )
 
 type RemoveCommand struct {
@@ -25,7 +25,7 @@ func ParseRemoveCommand(args []string) (*RemoveCommand, error) {
 	return removeCommand, nil
 }
 
-func (removeCommand *RemoveCommand) Execute(config *fileproxy.Config) error {
+func (removeCommand *RemoveCommand) Execute(config *proxyconfig.Config) error {
 	key := removeCommand.Source.String()
 	_, ok := config.Rewrites[key]
 
