@@ -12,8 +12,8 @@ import (
 const DefaultConfigFile string = "rewrites.json"
 
 type Config struct {
-	Verbose  bool
-	Rewrites map[string]string
+	Verbose  bool              `json:"verbose,omitempty"`
+	Rewrites map[string]string `json:"rewrites"`
 }
 
 func NewConfig() *Config {

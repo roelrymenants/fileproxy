@@ -4,15 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-
-	"github.com/roelrymenants/fileproxy/proxyconfig"
 )
 
 type RemoveCommand struct {
 	Source *url.URL
 }
 
-func ParseRemoveCommand(args []string) (*RemoveCommand, error) {
+func ParseRemoveCommand(args []string) (Command, error) {
 	removeCommand := &RemoveCommand{}
 
 	var err error
@@ -25,7 +23,13 @@ func ParseRemoveCommand(args []string) (*RemoveCommand, error) {
 	return removeCommand, nil
 }
 
-func (removeCommand *RemoveCommand) Execute(config *proxyconfig.Config) error {
+func (removeCommand *RemoveCommand) Execute(configLoader ConfigLoader) error {
+	config, err := configLoader()
+
+	if err != nil {
+		return err
+	}
+
 	key := removeCommand.Source.String()
 	_, ok := config.Rewrites[key]
 

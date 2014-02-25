@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-
-	"github.com/roelrymenants/fileproxy/proxyconfig"
 )
 
 type AddCommand struct {
@@ -31,7 +29,7 @@ func initAddFlags(addCommand *AddCommand) *flag.FlagSet {
 	return addFlags
 }
 
-func ParseAddCommand(flags []string) (*AddCommand, error) {
+func ParseAddCommand(flags []string) (Command, error) {
 	addCommand := AddCommand{}
 
 	addFlags := initAddFlags(&addCommand)
@@ -78,7 +76,13 @@ func downloadAndWriteToFile(url *url.URL, filepath string) error {
 	return err
 }
 
-func (addCommand *AddCommand) Execute(config *proxyconfig.Config) error {
+func (addCommand *AddCommand) Execute(configLoader ConfigLoader) error {
+	config, err := configLoader()
+
+	if err != nil {
+		return err
+	}
+
 	currentValue, exists := config.Rewrites[addCommand.Source.String()]
 
 	if exists && !addCommand.IsForce {

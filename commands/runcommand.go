@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,16 +11,33 @@ import (
 )
 
 type RunCommand struct {
+	IsVerbose bool
 }
 
-func ParseRunCommand(_ []string) (*RunCommand, error) {
-	return &RunCommand{}, nil
+func ParseRunCommand(args []string) (Command, error) {
+	runCmd := RunCommand{}
+
+	runFlags := flag.NewFlagSet("run", flag.ExitOnError)
+
+	runFlags.BoolVar(&runCmd.IsVerbose, "verbose", false, "Use -verbose to make the proxy verbose")
+	runFlags.BoolVar(&runCmd.IsVerbose, "v", false, "Use -v to make the proxy verbose")
+	
+	runFlags.Parse(args)
+
+	return &runCmd, nil
 }
 
-func (runCommand *RunCommand) Execute(config *proxyconfig.Config) error {
+func (runCommand *RunCommand) Execute(configLoader ConfigLoader) error {
+	config, err := configLoader()
+
+	if err != nil {
+		return err
+	}
+
 	proxy := goproxy.NewProxyHttpServer()
 
-	proxy.Verbose = config.Verbose
+	//Verbose if either config or RunCommand is set to verbose
+	proxy.Verbose = config.Verbose || runCommand.IsVerbose
 
 	var matchCondition = goproxy.ReqConditionFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
 		_, ok := config.Rewrites[req.URL.String()]
@@ -49,9 +67,11 @@ func (runCommand *RunCommand) Execute(config *proxyconfig.Config) error {
 	go func() {
 		for {
 			config = <-configChan
+			proxy.Verbose = config.Verbose
 		}
 	}()
 
+	log.Printf("Starting proxyserver localhost:8080 with config %+v", *config)
 	log.Fatal(http.ListenAndServe(":8080", proxy))
 
 	return nil
