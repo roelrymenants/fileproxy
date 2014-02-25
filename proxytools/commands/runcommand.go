@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"io/ioutil"
@@ -9,13 +9,14 @@ import (
 	"github.com/roelrymenants/fileproxy"
 )
 
-func main() {
-	config, err := fileproxy.LoadConfig(fileproxy.DefaultConfigFile)
-	
-	if err == nil {
-		log.Fatalf("Could not load config file. \n %s", err)
-	}
+type RunCommand struct {
+}
 
+func ParseRunCommand(_ []string) (*RunCommand, error) {
+	return &RunCommand{}, nil
+}
+
+func (runCommand *RunCommand) Execute(config *fileproxy.Config) error {
 	proxy := goproxy.NewProxyHttpServer()
 
 	proxy.Verbose = config.Verbose
@@ -52,4 +53,6 @@ func main() {
 	}()
 
 	log.Fatal(http.ListenAndServe(":8080", proxy))
+
+	return nil
 }

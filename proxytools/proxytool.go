@@ -31,6 +31,8 @@ func main() {
 	var err error
 
 	switch os.Args[1] {
+	case "run":
+		cmd, err = commands.(os.Args[2:])
 	case "add":
 		cmd, err = commands.ParseAddCommand(os.Args[2:])
 	case "remove":
