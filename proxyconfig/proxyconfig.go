@@ -1,4 +1,4 @@
-package fileproxy
+package proxyconfig
 
 import (
 	"io/ioutil"
