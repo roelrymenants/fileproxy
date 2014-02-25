@@ -10,18 +10,23 @@ import (
 )
 
 func main() {
-	config := *fileproxy.LoadConfig(fileproxy.DefaultConfigFile)
+	config, err := fileproxy.LoadConfig(fileproxy.DefaultConfigFile)
+	
+	if err == nil {
+		log.Fatalf("Could not load config file. \n %s", err)
+	}
 
 	proxy := goproxy.NewProxyHttpServer()
-	proxy.Verbose = true
+
+	proxy.Verbose = config.Verbose
 
 	var matchCondition = goproxy.ReqConditionFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) bool {
-		_, ok := config.Rewrites[req.URL.Path]
+		_, ok := config.Rewrites[req.URL.String()]
 
-		log.Printf("Trying to match %s", req.URL.Path)
+		log.Printf("Trying to match %s", req.URL.String())
 
 		if ok {
-			log.Printf("Matched %s", req.URL.Path)
+			log.Printf("Matched %s", req.URL.String())
 		}
 
 		return ok

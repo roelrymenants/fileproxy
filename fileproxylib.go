@@ -12,6 +12,7 @@ import (
 const DefaultConfigFile string = "rewrites.json"
 
 type Config struct {
+	Verbose  bool
 	Rewrites map[string]string
 }
 
@@ -19,16 +20,15 @@ func NewConfig() *Config {
 	return &Config{Rewrites: make(map[string]string)}
 }
 
-func LoadConfig(filepath string) *Config {
+func LoadConfig(filepath string) (*Config, error) {
 	var config Config
 	b, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	err = json.Unmarshal(b, &config)
-	log.Printf("%v", config)
 
-	return &config
+	return &config, err
 }
 
 func (config *Config) SaveToFile(filepath string) {
@@ -41,8 +41,8 @@ func (config *Config) SaveToFile(filepath string) {
 	ioutil.WriteFile(filepath, serialConfig, 0644)
 }
 
-func StartWatching(filepath string) chan Config {
-	configChan := make(chan Config)
+func StartWatching(filepath string) chan *Config {
+	configChan := make(chan *Config)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -54,10 +54,10 @@ func StartWatching(filepath string) chan Config {
 			select {
 			case event := <-watcher.Event:
 				log.Printf("Event: %+v", event)
-				config := LoadConfig(filepath)
+				config, err := LoadConfig(filepath)
 
-				if config != nil {
-					configChan <- *config
+				if err != nil {
+					configChan <- config
 				}
 			case err := <-watcher.Error:
 				log.Panic("Error: %+v", err)
